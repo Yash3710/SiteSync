@@ -25,18 +25,38 @@ export default function DashboardScreen() {
       {data && (
         <View>
           <Text style={{ fontSize: 14, fontWeight: '600', color: '#475569', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>{t('scheduleStatus')}</Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 24 }}>
-            {[
-              { label: t('pending'), value: data.schedule.pending, color: '#64748b', bg: '#ffffff' },
-              { label: t('in_progress'), value: data.schedule.in_progress, color: '#0ea5e9', bg: '#ffffff' },
-              { label: t('done'), value: data.schedule.done, color: '#10b981', bg: '#ffffff' },
-              { label: t('flagged'), value: data.schedule.flagged, color: '#ef4444', bg: '#ffffff' },
-            ].map(card => (
-              <View key={card.label} style={{ width: '48%', backgroundColor: card.bg, padding: 16, borderRadius: 16, marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 4, borderWidth: 1, borderColor: '#f1f5f9', borderLeftWidth: 3, borderLeftColor: card.color }}>
-                <Text style={{ fontSize: 11, fontWeight: '600', color: '#64748b', textTransform: 'uppercase' }}>{card.label}</Text>
-                <Text style={{ fontSize: 28, fontWeight: '700', color: '#0f172a', marginTop: 8 }}>{card.value}</Text>
+          <View style={{ backgroundColor: '#ffffff', padding: 24, borderRadius: 16, marginBottom: 32, borderWidth: 1, borderColor: '#f1f5f9', shadowColor: '#0f172a', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 16 }}>
+              <View>
+                <Text style={{ fontSize: 40, fontWeight: '700', color: '#0f172a', letterSpacing: -1, lineHeight: 44 }}>{data.schedule.done}</Text>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: '#10b981', textTransform: 'uppercase', letterSpacing: 0.5 }}>{t('done')}</Text>
               </View>
-            ))}
+              <View style={{ alignItems: 'flex-end', paddingBottom: 4 }}>
+                <Text style={{ fontSize: 16, fontWeight: '600', color: '#64748b' }}>/ {data.schedule.total} Total</Text>
+              </View>
+            </View>
+
+            {/* Segmented Progress Bar */}
+            <View style={{ height: 8, backgroundColor: '#f1f5f9', borderRadius: 4, flexDirection: 'row', overflow: 'hidden', marginBottom: 24 }}>
+              <View style={{ width: `${(data.schedule.done / Math.max(data.schedule.total, 1)) * 100}%`, backgroundColor: '#10b981' }} />
+              <View style={{ width: `${(data.schedule.in_progress / Math.max(data.schedule.total, 1)) * 100}%`, backgroundColor: '#0ea5e9' }} />
+              <View style={{ width: `${(data.schedule.flagged / Math.max(data.schedule.total, 1)) * 100}%`, backgroundColor: '#ef4444' }} />
+            </View>
+
+            {/* Legend Breakdown */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              {[
+                { label: t('in_progress'), value: data.schedule.in_progress, color: '#0ea5e9' },
+                { label: t('pending'), value: data.schedule.pending, color: '#94a3b8' },
+                { label: t('flagged'), value: data.schedule.flagged, color: '#ef4444' },
+              ].map(stat => (
+                <View key={stat.label} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: stat.color, marginRight: 8 }} />
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: '#0f172a', marginRight: 6 }}>{stat.value}</Text>
+                  <Text style={{ fontSize: 13, color: '#64748b', fontWeight: '500' }}>{stat.label}</Text>
+                </View>
+              ))}
+            </View>
           </View>
 
           <Text style={{ fontSize: 14, fontWeight: '600', color: '#475569', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>{t('aiMatchRouter')}</Text>
