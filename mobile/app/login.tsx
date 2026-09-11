@@ -8,6 +8,7 @@ import { useI18n, LANGUAGES } from '../lib/i18n';
 export default function LoginScreen() {
   const [mode, setMode] = useState<'worker' | 'manager'>('worker');
   const [joinCode, setJoinCode] = useState('');
+  const [workerName, setWorkerName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,8 @@ export default function LoginScreen() {
     try {
       if (mode === 'worker') {
         if (!joinCode.trim()) throw new Error("Please enter a Project Join Code");
-        await loginWorker(joinCode);
+        if (!workerName.trim()) throw new Error("Please enter your Name");
+        await loginWorker(joinCode, workerName);
         setRole('worker');
       } else {
         if (!email.trim() || !password.trim()) throw new Error("Please enter your email and password");
@@ -85,12 +87,21 @@ export default function LoginScreen() {
                 <View style={{ marginBottom: 32 }}>
                   <Text style={{ color: '#475569', fontWeight: '500', fontSize: 13, marginBottom: 8 }}>{t('joinCode')}</Text>
                   <TextInput 
-                    style={{ backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 12, padding: 16, fontSize: 16, color: '#0f172a' }} 
+                    style={{ backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 12, padding: 16, fontSize: 16, color: '#0f172a', marginBottom: 16 }} 
                     placeholder="Enter project code" 
                     placeholderTextColor="#94a3b8" 
                     autoCapitalize="characters" 
                     value={joinCode} 
                     onChangeText={setJoinCode} 
+                  />
+                  <Text style={{ color: '#475569', fontWeight: '500', fontSize: 13, marginBottom: 8 }}>Your Name</Text>
+                  <TextInput 
+                    style={{ backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 12, padding: 16, fontSize: 16, color: '#0f172a' }} 
+                    placeholder="Enter your name" 
+                    placeholderTextColor="#94a3b8" 
+                    autoCapitalize="words" 
+                    value={workerName} 
+                    onChangeText={setWorkerName} 
                   />
                   <Text style={{ color: '#94a3b8', fontSize: 13, marginTop: 12 }}>{t('askSupervisor')}</Text>
                 </View>

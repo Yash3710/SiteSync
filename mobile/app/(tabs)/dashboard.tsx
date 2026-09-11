@@ -96,9 +96,12 @@ export default function DashboardScreen() {
                     {item.translated_text && item.translated_text !== item.raw_text && (
                       <Text style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic', marginTop: 2 }} numberOfLines={1}>Original: "{item.raw_text}"</Text>
                     )}
-                    <Text style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>
-                      {item.confidence_score ? `${Math.round(item.confidence_score * 100)}% match` : t('noMatch')}
-                    </Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                      <Text style={{ fontSize: 12, color: '#64748b', fontWeight: '500' }}>By {item.worker_name || 'Unknown'}</Text>
+                      <Text style={{ fontSize: 12, color: '#94a3b8' }}>
+                        {item.confidence_score ? `${Math.round(item.confidence_score * 100)}% match` : t('noMatch')}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               ))}

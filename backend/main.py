@@ -44,11 +44,12 @@ def startup():
 @app.post("/auth/worker")
 def login_worker(payload: Dict[str, Any] = Body(...), db: sqlite3.Connection = Depends(get_db)):
     code = payload.get("join_code", "")
+    worker_name = payload.get("worker_name", "Unknown Worker")
     cursor = db.cursor()
     cursor.execute("SELECT id, name FROM projects WHERE join_code = ?", (code,))
     project = cursor.fetchone()
     if not project: raise HTTPException(404, "Invalid project code")
-    return {"access_token": create_access_token({"role": "worker", "project_id": project["id"]}), "role": "worker", "project_name": project["name"]}
+    return {"access_token": create_access_token({"role": "worker", "project_id": project["id"], "worker_name": worker_name}), "role": "worker", "project_name": project["name"]}
 
 @app.post("/auth/manager")
 def login_manager(payload: Dict[str, Any] = Body(...), db: sqlite3.Connection = Depends(get_db)):
@@ -79,8 +80,9 @@ def submit_report(payload: Dict[str, Any], db: sqlite3.Connection = Depends(get_
         conf = best["confidence"] if best else None
         
         cursor = db.cursor()
-        cursor.execute("INSERT INTO reports (project_id,raw_text,translated_text,extracted_task,extracted_quantity,extracted_location,extracted_date,matched_schedule_id,confidence_score,review_status) VALUES (?,?,?,?,?,?,?,?,?,?)",
-            (pid, raw, extracted.get("translated_text"), extracted.get("task"), extracted.get("quantity"), extracted.get("location"), extracted.get("date"), mid, conf, review_status))
+        worker_name = user.get("worker_name", "Unknown Worker")
+        cursor.execute("INSERT INTO reports (project_id,worker_name,raw_text,translated_text,extracted_task,extracted_quantity,extracted_location,extracted_date,matched_schedule_id,confidence_score,review_status) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            (pid, worker_name, raw, extracted.get("translated_text"), extracted.get("task"), extracted.get("quantity"), extracted.get("location"), extracted.get("date"), mid, conf, review_status))
         rid = cursor.lastrowid
         if review_status == "auto_applied" and mid:
             cursor.execute("UPDATE schedule_items SET status = 'done' WHERE id = ?", (mid,))

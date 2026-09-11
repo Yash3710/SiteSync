@@ -25,7 +25,10 @@ export default function ReviewQueueScreen() {
 
   const renderItem = ({ item }: { item: any }) => (
     <View style={{ backgroundColor: '#ffffff', padding: 20, borderRadius: 16, marginBottom: 16, borderWidth: 1, borderColor: '#f1f5f9', borderLeftWidth: 4, borderLeftColor: '#f59e0b' }}>
-      <Text style={{ fontSize: 11, fontWeight: '600', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6, letterSpacing: 0.5 }}>{t('supervisorReport')}</Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+        <Text style={{ fontSize: 11, fontWeight: '600', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5 }}>{t('supervisorReport')}</Text>
+        <Text style={{ fontSize: 11, fontWeight: '600', color: '#64748b', backgroundColor: '#f1f5f9', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 }}>{item.worker_name || 'Unknown Worker'}</Text>
+      </View>
       <Text style={{ fontSize: 16, fontWeight: '500', color: '#0f172a', marginBottom: item.translated_text && item.translated_text !== item.raw_text ? 4 : 16, fontStyle: 'italic' }}>"{item.translated_text || item.raw_text}"</Text>
       {item.translated_text && item.translated_text !== item.raw_text && (
         <Text style={{ fontSize: 13, color: '#94a3b8', fontStyle: 'italic', marginBottom: 16 }}>Original: "{item.raw_text}"</Text>
