@@ -40,7 +40,7 @@ def extract_from_text(raw_text):
             r = client.post(
                 "http://localhost:11434/api/generate",
                 json={
-                    "model": "gemma",  # Connected to Gemma! (If you ran gemma2, change this to "gemma2")
+                    "model": "gemma2:27b",  # Connected to your specific 27B model!
                     "prompt": prompt,
                     "stream": False,
                     "format": "json"      # Forces Ollama to output valid JSON
