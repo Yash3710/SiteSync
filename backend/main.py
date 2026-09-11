@@ -175,3 +175,60 @@ def add_schedule_item(payload: Dict[str, Any], db: sqlite3.Connection = Depends(
     ))
     db.commit()
     return {"status": "success", "id": c.lastrowid}
+
+from fastapi import UploadFile, File
+import pandas as pd
+from io import BytesIO
+
+@app.post("/upload-schedule")
+async def upload_schedule(file: UploadFile = File(...), db: sqlite3.Connection = Depends(get_db), user: dict = Depends(get_current_user)):
+    if user["role"] != "manager":
+        raise HTTPException(403, "Not authorized")
+    
+    contents = await file.read()
+    filename = file.filename.lower()
+    
+    try:
+        if filename.endswith('.csv'):
+            df = pd.read_csv(BytesIO(contents))
+        elif filename.endswith('.xlsx') or filename.endswith('.xls'):
+            df = pd.read_excel(BytesIO(contents))
+        else:
+            raise HTTPException(400, "Unsupported file format. Please upload CSV or Excel.")
+            
+        df.columns = [str(c).strip().lower() for c in df.columns]
+        
+        col_map = {
+            'task': 'task_name', 'name': 'task_name', 'task name': 'task_name', 'activity': 'task_name',
+            'disc': 'discipline', 'department': 'discipline',
+            'loc': 'location', 'zone': 'location',
+            'start': 'planned_start', 'planned start': 'planned_start', 'start date': 'planned_start',
+            'end': 'planned_end', 'planned end': 'planned_end', 'end date': 'planned_end', 'finish': 'planned_end'
+        }
+        df.rename(columns=col_map, inplace=True)
+        
+        required = ['task_name', 'planned_start', 'planned_end']
+        for req in required:
+            if req not in df.columns:
+                raise HTTPException(400, f"Missing required column: '{req}'. Found headers: {list(df.columns)}")
+                
+        c = db.cursor()
+        count = 0
+        for _, row in df.iterrows():
+            task = str(row['task_name'])
+            disc = str(row.get('discipline', 'General'))
+            loc = str(row.get('location', ''))
+            start = str(row['planned_start'])[:10]
+            end = str(row['planned_end'])[:10]
+            if pd.isna(row['task_name']): continue
+            
+            c.execute("""
+                INSERT INTO schedule_items (project_id, task_name, discipline, location, planned_start, planned_end, status)
+                VALUES (?, ?, ?, ?, ?, ?, 'pending')
+            """, (user["project_id"], task, disc, loc, start, end))
+            count += 1
+            
+        db.commit()
+        return {"status": "success", "inserted": count}
+    except Exception as e:
+        raise HTTPException(400, f"Error processing file: {str(e)}")

@@ -6,3 +6,5 @@ rapidfuzz>=3.8.0
 pyjwt>=2.8.0
 python-multipart>=0.0.9
 python-dotenv
+pandas
+openpyxl

@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, RefreshControl, TouchableOpacity, Modal, TextInput, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, RefreshControl, Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getActivities, addScheduleItem } from '../../lib/api';
+import { getActivities, addScheduleItem, uploadScheduleFile } from '../../lib/api';
 import { useI18n } from '../../lib/i18n';
+import * as DocumentPicker from 'expo-document-picker';
 
 export default function ActivitiesScreen() {
   const [items, setItems] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const { t } = useI18n();
 
   // Add Task Modal State
   const [modalVisible, setModalVisible] = useState(false);
   const [newTask, setNewTask] = useState({ task_name: '', discipline: '', location: '', planned_start: '', planned_end: '' });
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const { t } = useI18n();
 
   const loadData = async () => {
     try { setItems(await getActivities()); } catch (e) { console.error(e); }
@@ -21,20 +23,38 @@ export default function ActivitiesScreen() {
   useEffect(() => { loadData(); }, []);
 
   const handleSaveTask = async () => {
-    if (!newTask.task_name || !newTask.location || !newTask.planned_start) {
-      Alert.alert("Missing Fields", "Please fill out at least the task name, location, and start date.");
-      return;
-    }
+    if (!newTask.task_name) return Alert.alert("Error", "Task name is required");
     setSaving(true);
     try {
       await addScheduleItem(newTask);
       setModalVisible(false);
       setNewTask({ task_name: '', discipline: '', location: '', planned_start: '', planned_end: '' });
-      await loadData();
-    } catch (e: any) {
-      Alert.alert("Error", e.message || "Failed to add task");
+      loadData();
+    } catch (e) {
+      Alert.alert("Error", "Failed to add task");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleFileUpload = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'],
+        copyToCacheDirectory: true
+      });
+      if (result.canceled) return;
+      
+      const file = result.assets[0];
+      setUploading(true);
+      const res = await uploadScheduleFile(file.uri, file.name, file.mimeType || 'application/octet-stream');
+      Alert.alert("Success", `Uploaded and added ${res.inserted} tasks to the schedule!`);
+      setModalVisible(false);
+      loadData();
+    } catch (e: any) {
+      Alert.alert("Upload Failed", e.message || "Could not process file");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -165,10 +185,29 @@ export default function ActivitiesScreen() {
 
               <TouchableOpacity 
                 onPress={handleSaveTask}
-                disabled={saving}
-                style={{ backgroundColor: '#ea580c', paddingVertical: 16, borderRadius: 16, alignItems: 'center', opacity: saving ? 0.7 : 1 }}
+                disabled={saving || uploading}
+                style={{ backgroundColor: '#ea580c', paddingVertical: 16, borderRadius: 16, alignItems: 'center', opacity: (saving || uploading) ? 0.7 : 1, marginBottom: 16 }}
               >
                 <Text style={{ color: '#ffffff', fontSize: 16, fontWeight: '700' }}>{saving ? 'Saving...' : 'Add to Schedule'}</Text>
+              </TouchableOpacity>
+              
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+                <View style={{ flex: 1, height: 1, backgroundColor: '#e2e8f0' }} />
+                <Text style={{ marginHorizontal: 16, color: '#94a3b8', fontSize: 13, fontWeight: '600' }}>OR</Text>
+                <View style={{ flex: 1, height: 1, backgroundColor: '#e2e8f0' }} />
+              </View>
+
+              <TouchableOpacity 
+                onPress={handleFileUpload}
+                disabled={saving || uploading}
+                style={{ backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#cbd5e1', paddingVertical: 16, borderRadius: 16, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', opacity: (saving || uploading) ? 0.7 : 1 }}
+              >
+                {uploading ? (
+                  <ActivityIndicator size="small" color="#475569" style={{ marginRight: 8 }} />
+                ) : (
+                  <Ionicons name="document-text-outline" size={20} color="#475569" style={{ marginRight: 8 }} />
+                )}
+                <Text style={{ color: '#475569', fontSize: 16, fontWeight: '600' }}>{uploading ? 'Processing File...' : 'Upload Excel / CSV Schedule'}</Text>
               </TouchableOpacity>
               
             </View>
