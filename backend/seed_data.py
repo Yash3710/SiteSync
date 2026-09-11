@@ -11,7 +11,7 @@ def seed_if_empty(conn):
     project_id = cursor.lastrowid
     
     # Create a default manager
-    cursor.execute("INSERT INTO users (email, role, project_id) VALUES (?, ?, ?)", ("manager@site.com", "manager", project_id))
+    cursor.execute("INSERT INTO users (email, password, role, project_id) VALUES (?, ?, ?, ?)", ("manager@site.com", "password123", "manager", project_id))
     
     schedule_items = [
         # Piping - Zone A

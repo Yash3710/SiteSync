@@ -9,6 +9,7 @@ export default function LoginScreen() {
   const [mode, setMode] = useState<'worker' | 'manager'>('worker');
   const [joinCode, setJoinCode] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   
@@ -26,8 +27,8 @@ export default function LoginScreen() {
         await loginWorker(joinCode);
         setRole('worker');
       } else {
-        if (!email.trim()) throw new Error("Please enter your email");
-        await loginManager(email);
+        if (!email.trim() || !password.trim()) throw new Error("Please enter your email and password");
+        await loginManager(email, password);
         setRole('manager');
       }
       setIsAuthenticated(true);
@@ -97,13 +98,22 @@ export default function LoginScreen() {
                 <View style={{ marginBottom: 32 }}>
                   <Text style={{ color: '#475569', fontWeight: '500', fontSize: 13, marginBottom: 8 }}>{t('workEmail')}</Text>
                   <TextInput 
-                    style={{ backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 12, padding: 16, fontSize: 16, color: '#0f172a' }} 
+                    style={{ backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 12, padding: 16, fontSize: 16, color: '#0f172a', marginBottom: 16 }} 
                     placeholder="name@company.com" 
                     placeholderTextColor="#94a3b8" 
                     autoCapitalize="none" 
                     keyboardType="email-address" 
                     value={email} 
                     onChangeText={setEmail} 
+                  />
+                  <Text style={{ color: '#475569', fontWeight: '500', fontSize: 13, marginBottom: 8 }}>Password</Text>
+                  <TextInput 
+                    style={{ backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 12, padding: 16, fontSize: 16, color: '#0f172a' }} 
+                    placeholder="Enter password" 
+                    placeholderTextColor="#94a3b8" 
+                    secureTextEntry
+                    value={password} 
+                    onChangeText={setPassword} 
                   />
                 </View>
               )}

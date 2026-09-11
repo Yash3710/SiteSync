@@ -31,10 +31,13 @@ def login_worker(payload: Dict[str, Any] = Body(...), db: sqlite3.Connection = D
 @app.post("/auth/manager")
 def login_manager(payload: Dict[str, Any] = Body(...), db: sqlite3.Connection = Depends(get_db)):
     email = payload.get("email", "")
+    password = payload.get("password", "")
     cursor = db.cursor()
-    cursor.execute("SELECT project_id FROM users WHERE email = ? AND role = 'manager'", (email,))
+    cursor.execute("SELECT project_id, password FROM users WHERE email = ? AND role = 'manager'", (email,))
     user = cursor.fetchone()
     if not user: raise HTTPException(404, "Manager account not found")
+    if user["password"] and user["password"] != password:
+        raise HTTPException(401, "Invalid password")
     return {"access_token": create_access_token({"role": "manager", "project_id": user["project_id"]}), "role": "manager"}
 
 # --- PROTECTED ---
@@ -127,3 +130,22 @@ def get_activities(db: sqlite3.Connection = Depends(get_db), user: dict = Depend
     c = db.cursor()
     c.execute("SELECT * FROM schedule_items WHERE project_id = ? ORDER BY planned_start", (user["project_id"],))
     return [dict(r) for r in c.fetchall()]
+
+@app.post("/schedule")
+def add_schedule_item(payload: Dict[str, Any], db: sqlite3.Connection = Depends(get_db), user: dict = Depends(get_current_user)):
+    if user["role"] != "manager":
+        raise HTTPException(403, "Not authorized")
+    c = db.cursor()
+    c.execute("""
+        INSERT INTO schedule_items (project_id, task_name, discipline, location, planned_start, planned_end, status)
+        VALUES (?, ?, ?, ?, ?, ?, 'pending')
+    """, (
+        user["project_id"], 
+        payload.get("task_name", "Untitled Task"), 
+        payload.get("discipline", "General"), 
+        payload.get("location", ""), 
+        payload.get("planned_start", ""), 
+        payload.get("planned_end", "")
+    ))
+    db.commit()
+    return {"status": "success", "id": c.lastrowid}
