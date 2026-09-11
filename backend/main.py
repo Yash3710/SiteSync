@@ -7,6 +7,28 @@ from seed_data import seed_if_empty
 from extraction import extract_from_text
 from matching import match_report
 from auth import create_access_token, get_current_user
+from datetime import datetime
+
+def log_task_history(db: sqlite3.Connection, schedule_id: int, project_id: int):
+    c = db.cursor()
+    c.execute("SELECT discipline, planned_start, planned_end FROM schedule_items WHERE id = ?", (schedule_id,))
+    row = c.fetchone()
+    if not row or not row["planned_start"] or not row["planned_end"]: return
+    try:
+        fmt = "%Y-%m-%d"
+        p_start = datetime.strptime(row["planned_start"], fmt)
+        p_end = datetime.strptime(row["planned_end"], fmt)
+        today = datetime.now()
+        planned_days = max(1, (p_end - p_start).days + 1)
+        actual_days = max(1, (today - p_start).days + 1)
+        delay = actual_days - planned_days
+        reason = "Finished late" if delay > 0 else None
+        c.execute("""
+            INSERT INTO task_history (project_id, task_type, planned_duration_days, actual_duration_days, delay_reason)
+            VALUES (?, ?, ?, ?, ?)
+        """, (project_id, row["discipline"] or "general", planned_days, actual_days, reason))
+    except Exception as e:
+        print("Error logging task history:", e)
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
@@ -62,6 +84,7 @@ def submit_report(payload: Dict[str, Any], db: sqlite3.Connection = Depends(get_
         rid = cursor.lastrowid
         if review_status == "auto_applied" and mid:
             cursor.execute("UPDATE schedule_items SET status = 'done' WHERE id = ?", (mid,))
+            log_task_history(db, mid, pid)
         db.commit()
         return {"report_id": rid, "extracted": extracted, "match": best, "review_status": review_status, "finalized": True}
 
@@ -91,6 +114,7 @@ def confirm_match(report_id: int, db: sqlite3.Connection = Depends(get_db), user
     c.execute("UPDATE reports SET review_status = 'auto_applied' WHERE id = ?", (report_id,))
     if row["matched_schedule_id"]:
         c.execute("UPDATE schedule_items SET status = 'done' WHERE id = ?", (row["matched_schedule_id"],))
+        log_task_history(db, row["matched_schedule_id"], user["project_id"])
     db.commit()
     return {"status": "success"}
 
