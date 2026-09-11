@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, RefreshControl, Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getActivities, addScheduleItem, uploadScheduleFile } from '../../lib/api';
+import { getActivities, addScheduleItem, uploadScheduleFile, deleteScheduleItem } from '../../lib/api';
 import { useI18n } from '../../lib/i18n';
 import * as DocumentPicker from 'expo-document-picker';
 
@@ -65,15 +65,42 @@ export default function ActivitiesScreen() {
     pending: { color: '#94a3b8', icon: 'time', bg: '#f8fafc' },
   };
 
+  const handleDelete = (id: number) => {
+    Alert.alert(
+      "Delete Task",
+      "Are you sure you want to remove this task from the schedule?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete", 
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteScheduleItem(id);
+              loadData();
+            } catch (e) {
+              Alert.alert("Error", "Could not delete task.");
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const renderItem = ({ item }: { item: any }) => {
     const s = statusStyle[item.status] || statusStyle.pending;
     return (
       <View style={{ backgroundColor: '#ffffff', padding: 20, borderRadius: 16, marginBottom: 16, borderWidth: 1, borderColor: '#f1f5f9', borderLeftWidth: 4, borderLeftColor: s.color, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.02, shadowRadius: 6 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
           <Text style={{ fontSize: 16, fontWeight: '600', flex: 1, color: '#0f172a', paddingRight: 12, lineHeight: 22 }}>{item.task_name}</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: s.bg, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}>
-            <Ionicons name={s.icon as any} size={14} color={s.color} style={{ marginRight: 6 }} />
-            <Text style={{ fontSize: 11, fontWeight: '700', color: s.color, textTransform: 'uppercase', letterSpacing: 0.5 }}>{t(item.status)}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: s.bg, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, marginRight: 8 }}>
+              <Ionicons name={s.icon as any} size={14} color={s.color} style={{ marginRight: 6 }} />
+              <Text style={{ fontSize: 11, fontWeight: '700', color: s.color, textTransform: 'uppercase', letterSpacing: 0.5 }}>{t(item.status)}</Text>
+            </View>
+            <TouchableOpacity onPress={() => handleDelete(item.id)} style={{ padding: 4 }}>
+              <Ionicons name="trash-outline" size={18} color="#ef4444" />
+            </TouchableOpacity>
           </View>
         </View>
         

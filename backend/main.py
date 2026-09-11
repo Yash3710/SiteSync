@@ -176,6 +176,15 @@ def add_schedule_item(payload: Dict[str, Any], db: sqlite3.Connection = Depends(
     db.commit()
     return {"status": "success", "id": c.lastrowid}
 
+@app.delete("/schedule/{item_id}")
+def delete_schedule_item(item_id: int, db: sqlite3.Connection = Depends(get_db), user: dict = Depends(get_current_user)):
+    if user["role"] != "manager":
+        raise HTTPException(403, "Not authorized")
+    c = db.cursor()
+    c.execute("DELETE FROM schedule_items WHERE id = ? AND project_id = ?", (item_id, user["project_id"]))
+    db.commit()
+    return {"status": "deleted"}
+
 from fastapi import UploadFile, File
 import pandas as pd
 from io import BytesIO
