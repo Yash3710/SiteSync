@@ -101,7 +101,28 @@ export default function ActivitiesScreen() {
         renderItem={renderItem}
         contentContainerStyle={{ padding: 24, paddingBottom: 120 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await loadData(); setRefreshing(false); }} />}
-        ListHeaderComponent={<Text style={{ fontSize: 28, fontWeight: '700', color: '#0f172a', marginBottom: 24, letterSpacing: -0.5 }}>{t('activityBoard')}</Text>}
+        ListHeaderComponent={
+          <View style={{ marginBottom: 24 }}>
+            <Text style={{ fontSize: 28, fontWeight: '700', color: '#0f172a', letterSpacing: -0.5, marginBottom: 16 }}>{t('activityBoard')}</Text>
+            <TouchableOpacity 
+              onPress={handleFileUpload}
+              disabled={uploading}
+              style={{ backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e2e8f0', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, flexDirection: 'row', alignItems: 'center', shadowColor: '#0f172a', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.02, shadowRadius: 4 }}
+            >
+              {uploading ? (
+                <ActivityIndicator size="small" color="#ea580c" style={{ marginRight: 10 }} />
+              ) : (
+                <View style={{ backgroundColor: '#fff7ed', padding: 6, borderRadius: 8, marginRight: 10 }}>
+                  <Ionicons name="document-text" size={18} color="#ea580c" />
+                </View>
+              )}
+              <View>
+                <Text style={{ color: '#0f172a', fontSize: 14, fontWeight: '600' }}>{uploading ? 'Processing File...' : 'Upload Schedule File'}</Text>
+                <Text style={{ color: '#64748b', fontSize: 12, marginTop: 2 }}>.csv, .xlsx, or Primavera</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        }
         ListEmptyComponent={<Text style={{ fontSize: 15, color: '#94a3b8', textAlign: 'center', marginTop: 60 }}>{t('noActivities')}</Text>}
       />
 
@@ -186,28 +207,9 @@ export default function ActivitiesScreen() {
               <TouchableOpacity 
                 onPress={handleSaveTask}
                 disabled={saving || uploading}
-                style={{ backgroundColor: '#ea580c', paddingVertical: 16, borderRadius: 16, alignItems: 'center', opacity: (saving || uploading) ? 0.7 : 1, marginBottom: 16 }}
+                style={{ backgroundColor: '#ea580c', paddingVertical: 16, borderRadius: 16, alignItems: 'center', opacity: (saving || uploading) ? 0.7 : 1 }}
               >
                 <Text style={{ color: '#ffffff', fontSize: 16, fontWeight: '700' }}>{saving ? 'Saving...' : 'Add to Schedule'}</Text>
-              </TouchableOpacity>
-              
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-                <View style={{ flex: 1, height: 1, backgroundColor: '#e2e8f0' }} />
-                <Text style={{ marginHorizontal: 16, color: '#94a3b8', fontSize: 13, fontWeight: '600' }}>OR</Text>
-                <View style={{ flex: 1, height: 1, backgroundColor: '#e2e8f0' }} />
-              </View>
-
-              <TouchableOpacity 
-                onPress={handleFileUpload}
-                disabled={saving || uploading}
-                style={{ backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#cbd5e1', paddingVertical: 16, borderRadius: 16, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', opacity: (saving || uploading) ? 0.7 : 1 }}
-              >
-                {uploading ? (
-                  <ActivityIndicator size="small" color="#475569" style={{ marginRight: 8 }} />
-                ) : (
-                  <Ionicons name="document-text-outline" size={20} color="#475569" style={{ marginRight: 8 }} />
-                )}
-                <Text style={{ color: '#475569', fontSize: 16, fontWeight: '600' }}>{uploading ? 'Processing File...' : 'Upload Excel / CSV Schedule'}</Text>
               </TouchableOpacity>
               
             </View>
