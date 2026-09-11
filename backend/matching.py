@@ -49,5 +49,5 @@ def match_report(extracted: Dict[str, Any], items: List[Dict[str, Any]]) -> Dict
     # Score and rank
     scored = sorted([{"schedule_item": i, "confidence": c, "breakdown": b} for i in pool for c, b in [_confidence(extracted, i)]], key=lambda x: x["confidence"], reverse=True)[:3]
     best = scored[0]["confidence"]
-    status = "auto_applied" if best >= 0.65 else "needs_review" if best >= 0.45 else "no_match"
+    status = "auto_applied" if best >= 0.80 else "needs_review" if best >= 0.50 else "no_match"
     return {"candidates": scored, "best_match": scored[0] if status != "no_match" else None, "review_status": status}
