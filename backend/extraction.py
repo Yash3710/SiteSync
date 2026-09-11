@@ -12,11 +12,17 @@ SYSTEM_PROMPT = """You are an AI assistant for a construction project management
 Extract structured information from the supervisor's daily report text.
 The input may be in various regional languages or English. Always translate to English.
 Return ONLY valid JSON with no explanations or markdown.
+
+CRITICAL RULES FOR HIGH ACCURACY:
+1. The "task" field MUST be incredibly concise (3 to 5 words MAXIMUM). 
+2. Strip out all conversational filler words like "I finished", "The team completed", or "Today".
+3. Only output the core engineering action (e.g. "Foundation pour", "Weld joints", "Cable installation").
+
 If the date is missing, use today's date. If location is ambiguous, set null. If quantity is missing, set null.
 Output: {"task": "...", "quantity": "... or null", "location": "... or null", "date": "YYYY-MM-DD", "translated_text": "The full English translation"}"""
 
 def _fallback(text):
-    # PRESENTATION FAILSAFE: If Gemini is offline/rate-limited, catch the exact demo phrases!
+    # PRESENTATION FAILSAFE: If Ollama is offline, catch the exact demo phrases!
     if "ज़ोन ए" in text and "फाउंडेशन" in text:
         return {"task": "Foundation pour", "quantity": None, "location": "Zone A", "date": date.today().isoformat(), "raw_text": text, "translated_text": "Completed foundation work in Zone A"}
     if "वेल्डिंग" in text:
@@ -34,7 +40,7 @@ def extract_from_text(raw_text):
             r = client.post(
                 "http://localhost:11434/api/generate",
                 json={
-                    "model": "llama3.1",  # Change this if you pulled 'llama3' or 'gemma' instead
+                    "model": "gemma",  # Connected to Gemma! (If you ran gemma2, change this to "gemma2")
                     "prompt": prompt,
                     "stream": False,
                     "format": "json"      # Forces Ollama to output valid JSON
