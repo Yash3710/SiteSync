@@ -40,10 +40,10 @@ def extract_from_text(raw_text):
             r = client.post(
                 "http://localhost:11434/api/generate",
                 json={
-                    "model": "gemma2:27b",  # Connected to your specific 27B model!
+                    "model": "llama3.1",  # Switched to the blazing fast 4.9GB model!
                     "prompt": prompt,
                     "stream": False,
-                    "format": "json"      # Forces Ollama to output valid JSON
+                    "format": "json"
                 }
             )
             r.raise_for_status()
