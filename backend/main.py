@@ -186,15 +186,17 @@ async def upload_schedule(file: UploadFile = File(...), db: sqlite3.Connection =
         raise HTTPException(403, "Not authorized")
     
     contents = await file.read()
-    filename = file.filename.lower()
+    filename = (file.filename or "").lower()
     
     try:
         if filename.endswith('.csv'):
             df = pd.read_csv(BytesIO(contents))
-        elif filename.endswith('.xlsx') or filename.endswith('.xls'):
-            df = pd.read_excel(BytesIO(contents))
         else:
-            raise HTTPException(400, "Unsupported file format. Please upload CSV or Excel.")
+            # Default to Excel if .xlsx, .xls, or if the mobile upload drops the extension
+            try:
+                df = pd.read_excel(BytesIO(contents))
+            except Exception:
+                raise HTTPException(400, "Could not parse file as Excel or CSV.")
             
         df.columns = [str(c).strip().lower() for c in df.columns]
         
@@ -203,7 +205,7 @@ async def upload_schedule(file: UploadFile = File(...), db: sqlite3.Connection =
             'disc': 'discipline', 'department': 'discipline',
             'loc': 'location', 'zone': 'location',
             'start': 'planned_start', 'planned start': 'planned_start', 'start date': 'planned_start',
-            'end': 'planned_end', 'planned end': 'planned_end', 'end date': 'planned_end', 'finish': 'planned_end'
+            'end': 'planned_end', 'planned end': 'planned_end', 'end date': 'planned_end', 'finish': 'planned_end', 'planned finish': 'planned_end'
         }
         df.rename(columns=col_map, inplace=True)
         
