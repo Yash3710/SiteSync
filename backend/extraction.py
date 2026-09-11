@@ -10,14 +10,14 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "YOUR_API_KEY_HERE")
 
 SYSTEM_PROMPT = """You are an AI assistant for a construction project management tool.
 Extract structured information from the supervisor's daily report text.
-The input may be in various regional languages or English. Always translate to English.
-Return ONLY valid JSON with no explanations or markdown.
 
 CRITICAL RULES FOR HIGH ACCURACY:
-1. The "task" field MUST be incredibly concise (3 to 5 words MAXIMUM). 
-2. Strip out all conversational filler words like "I finished", "The team completed", or "Today".
-3. Only output the core engineering action (e.g. "Foundation pour", "Weld joints", "Cable installation").
+1. ALL OUTPUT MUST BE TRANSLATED TO ENGLISH. If the input is Hindi, you MUST translate the "task" into English. (e.g. "फाउंडेशन पोर" -> "Foundation pour").
+2. The "task" field MUST be incredibly concise (3 to 5 words MAXIMUM). 
+3. Strip out all conversational filler words like "I finished", "The team completed", or "Today".
+4. Only output the core engineering action (e.g. "Foundation pour", "Weld joints", "Cable installation").
 
+Return ONLY valid JSON with no explanations or markdown.
 If the date is missing, use today's date. If location is ambiguous, set null. If quantity is missing, set null.
 Output: {"task": "...", "quantity": "... or null", "location": "... or null", "date": "YYYY-MM-DD", "translated_text": "The full English translation"}"""
 

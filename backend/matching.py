@@ -7,7 +7,7 @@ _model = None
 def _get_model():
     global _model
     if _model is None:
-        _model = SentenceTransformer("all-MiniLM-L6-v2")
+        _model = SentenceTransformer("all-MiniLM-L6-v2", local_files_only=True)
     return _model
 
 def _semantic_sim(a: str, b: str) -> float:
